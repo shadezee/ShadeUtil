@@ -1,5 +1,14 @@
+from sys import platform, executable, argv, exit
 from os import path, walk, environ as env
 from ctypes import windll, create_unicode_buffer
+
+def run_as_admin_user():
+    if platform == 'win32':
+        if windll.shell32.IsUserAnAdmin() == 0:
+            sys_executable = executable
+            params = " ".join(argv)
+            windll.shell32.ShellExecuteW(None, "runas", sys_executable, params, None, 1)
+            exit(1)
 
 def get_temp_folder_size():
     total_size = 0

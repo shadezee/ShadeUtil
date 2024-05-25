@@ -1,17 +1,20 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QStyleFactory, QPushButton, QLabel, QCheckBox, QTextEdit, QMessageBox
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QCheckBox, QTextEdit
 from utils.m_network_fix import *
 from utils.m_clear_temp_files import *
-from utils.support.m_run_as_admin import *
 from utils.support.helpers import *
+
+env = 'prod'
+# env = 'dev'
 
 class GUI(QWidget):
     recycle = True;
 
     def __init__(self):
         super().__init__()
-        self.initGUI()
+        self.init_gui()
+        self.get_sizes()
 
-    def initGUI(self):
+    def init_gui(self):
         self.setWindowTitle("Shade Utils")
         self.setFixedSize(480, 600)
         layout = QVBoxLayout(self)
@@ -20,9 +23,10 @@ class GUI(QWidget):
         self.button_network_fix = QPushButton('Fix Wi-fi')
         self.button_clear_temp = QPushButton('Clean Temporary Files Folder')
         self.button_clear_temp_permanently = QPushButton('Recycle?')
+        self.button_open_temp = QPushButton('Open Temporary Files folder')
         self.info_terminal = QTextEdit()
         self.display_terminal = QTextEdit()
-        self.clear_terminal = QPushButton('Clear Display')
+        self.button_clear_terminal = QPushButton('Clear Display')
 
         # WIDGET CONFIGS
         self.button_clear_temp_permanently.setStyleSheet('background-color : #acd42a')
@@ -36,24 +40,24 @@ class GUI(QWidget):
         self.button_network_fix.setEnabled(True)
         self.button_clear_temp.setEnabled(True)
         self.button_clear_temp_permanently.setEnabled(True)
-        self.clear_terminal.setEnabled(True)
+        self.button_open_temp.setEnabled(True)
+        self.button_clear_terminal.setEnabled(True)
 
         # SET LAYOUT
         layout.addWidget(self.button_network_fix)
         layout.addWidget(self.button_clear_temp)
         layout.addWidget(self.button_clear_temp_permanently)
+        layout.addWidget(self.button_open_temp)
         layout.addWidget(self.info_terminal)
         layout.addWidget(self.display_terminal)
-        layout.addWidget(self.clear_terminal)
+        layout.addWidget(self.button_clear_terminal)
 
         # SET WIDGET FUNCTIONALITY
         self.button_network_fix.clicked.connect(self.fix_wifi)
         self.button_clear_temp.clicked.connect(self.clear_temp_files)
         self.button_clear_temp_permanently.clicked.connect(self.toggle_clean_temp_status)
-        self.clear_terminal.clicked.connect(self.clear_display_terminal)
-
-        # CALL INITIAL FUNCTIONS
-        self.get_sizes()
+        self.button_open_temp.clicked.connect(self.show_temp_folder)
+        self.button_clear_terminal.clicked.connect(self.clear_display_terminal)
 
     def get_sizes(self):
         result_temp = get_temp_folder_size()
@@ -63,13 +67,21 @@ class GUI(QWidget):
             f'Recycle bin size: {result_rec:.2f} MB.'
         )
 
+    def get_display_text(self):
+        text = self.display_terminal.toPlainText()
+        return text
+
     def fix_wifi(self):
-        run_as_admin_user()
+        text = self.get_display_text()
+        self.display_terminal.setPlainText(f'{text}\nResetting driver...')
+
         result = network_fix()
+
+        text = self.get_display_text()
         if (result):
-            self.display_terminal.setPlainText(f'Driver successfully reset.')
+            self.display_terminal.setPlainText(f'{text}\nDriver successfully reset.')
         else:
-            self.display_terminal.setPlainText(f'Error encountered: {result}.')
+            self.display_terminal.setPlainText(f'{text}\nError encountered: {result}.')
 
     def clear_temp_files(self):
         text = self.display_terminal.toPlainText()
@@ -98,10 +110,10 @@ class GUI(QWidget):
     def clear_display_terminal(self):
         self.display_terminal.clear()
 
-    def popup(self):
-        box = QMessageBox()
-
 if __name__ == "__main__":
+    if env != 'dev':
+        run_as_admin_user()
+
     app = QApplication([])
     gui = GUI()
     gui.show()
