@@ -1,4 +1,18 @@
+# image files
+*.psd
+*.png
+
+# directories
+.vscode
 __pycache__
-.vscode/* 
-.git/
-tempCodeRunnerFile.py
+.venv
+.github
+output
+devcon
+
+# test files that maybe created
+*_test.py
+
+# sqlite database
+storage
+*.db
