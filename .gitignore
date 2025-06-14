@@ -9,10 +9,10 @@ __pycache__
 .github
 output
 devcon
+settings
 
 # test files that maybe created
 *_test.py
 
-# sqlite database
-storage
-*.db
+# other files
+pi_config.json

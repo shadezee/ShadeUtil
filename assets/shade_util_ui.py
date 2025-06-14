@@ -48,7 +48,9 @@ class Ui_MainWindow(object):
         self.appLabel.setObjectName("appLabel")
         self.horizontalLayout.addWidget(self.appLabel)
         self.settingsBtn = QtWidgets.QPushButton(parent=self.frame)
-        self.settingsBtn.setStyleSheet("background:transparent")
+        self.settingsBtn.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.settingsBtn.setStyleSheet("background:transparent;\n"
+"border: 0px solid;")
         self.settingsBtn.setText("")
         self.settingsBtn.setObjectName("settingsBtn")
         self.horizontalLayout.addWidget(self.settingsBtn)
