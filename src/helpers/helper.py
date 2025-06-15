@@ -1,38 +1,9 @@
-from os import path, makedirs
+from os import path, makedirs, walk, environ as env
 import json
 import sys
-from ctypes import windll
+from ctypes import windll, create_unicode_buffer
 from src.helpers.constants import get_default_settings
 
-def get_setting(key: str, pwd: str):
-  settingsPath = path.join(pwd, 'settings', 'settings.json')
-  with open(settingsPath, 'r', encoding="utf-8") as f:
-    settings = json.load(f)
-  return settings[key]
-
-def verify_devcon(pwd: str):
-  devconPath = path.join(pwd, 'devcon')
-  if not path.isdir(devconPath):
-    makedirs(devconPath)
-  devconPath = path.join(devconPath, 'devcon.exe')
-  if not path.isfile(devconPath):
-    return False
-  return True
-
-def verify_settings(pwd: str):
-  try:
-    settingsPath = path.join(pwd, 'settings')
-    if not path.isdir(settingsPath):
-      makedirs(settingsPath)
-
-    settingsPath = path.join(settingsPath, 'settings.json')
-    if not path.isfile(settingsPath):
-      with open(settingsPath, 'w', encoding="utf-8") as f:
-        json.dump(get_default_settings(), f)
-  except Exception:
-    return False
-
-  return settingsPath
 
 def is_admin():
   try:
@@ -49,3 +20,57 @@ def run_as_admin_user():
       windll.shell32.ShellExecuteW(None, "runas", sysExecutable, params, None, 1)
       sys.exit(1)
   return True
+
+def verify_devcon(pwd: str):
+  devconPath = path.join(pwd, 'devcon')
+  if not path.isdir(devconPath):
+    makedirs(devconPath)
+  devconPath = path.join(devconPath, 'devcon.exe')
+  if not path.isfile(devconPath):
+    return False
+  return devconPath
+
+def verify_settings(pwd: str):
+  try:
+    settingsPath = path.join(pwd, 'settings')
+    if not path.isdir(settingsPath):
+      makedirs(settingsPath)
+
+    settingsPath = path.join(settingsPath, 'settings.json')
+    if not path.isfile(settingsPath):
+      with open(settingsPath, 'w', encoding="utf-8") as f:
+        json.dump(get_default_settings(), f)
+  except Exception:
+    return False
+
+  return settingsPath
+
+def get_setting(key: str, pwd: str):
+  settingsPath = path.join(pwd, 'settings', 'settings.json')
+  with open(settingsPath, 'r', encoding="utf-8") as f:
+    settings = json.load(f)
+  return settings[key]
+
+async def get_temp_folder_size():
+  totalSize = 0
+
+  for dirpath, _, filenames in walk(env.get('TEMP')):
+    for filename in filenames:
+      filepath = path.join(dirpath, filename)
+      totalSize += path.getsize(filepath)
+
+  return (totalSize / 1024) / 1024
+
+async def get_recycle_bin_size():
+  shell32 = windll.shell32
+  buffer = create_unicode_buffer(260)
+  shell32.SHGetFolderPathW(0, 10, 0, 0, buffer)
+  recycleBinPath = path.join(env['HOMEDRIVE'], '\\$Recycle.Bin')
+
+  totalSize = 0
+  for dirpath, _, filenames in walk(recycleBinPath):
+    for filename in filenames:
+      filepath = path.join(dirpath, filename)
+      totalSize += path.getsize(filepath)
+
+  return totalSize / (1024 * 1024)

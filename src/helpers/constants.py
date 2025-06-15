@@ -1,12 +1,12 @@
 
 def get_hid_restart_script(devconPath: str, deviceID: str):
-  script = f'''\n
-    $devconPath = {devconPath}\n
-    $deviceID = {deviceID}\n
-    & $devconPath find * | Select-String ${deviceID}\n
-    & $devconPath disable "${deviceID}"\n
-    Start-Sleep -Seconds 3\n
-    & $devconPath enable "${deviceID}"\n
+  script = f'''
+    $devconPath = "{devconPath}"
+    $deviceID = "{deviceID}"
+    & $devconPath find * | Select-String $deviceID
+    & $devconPath disable "$deviceID"
+    Start-Sleep -Seconds 3
+    & $devconPath enable "$deviceID"
   '''
 
   return script

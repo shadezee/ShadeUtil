@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>734</width>
-    <height>563</height>
+    <width>782</width>
+    <height>580</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Shade Util</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -109,7 +109,7 @@ border: 0px solid;</string>
             <number>0</number>
            </property>
            <property name="elideMode">
-            <enum>Qt::ElideMiddle</enum>
+            <enum>Qt::ElideRight</enum>
            </property>
            <widget class="QWidget" name="driverIssuesTab">
             <attribute name="title">
@@ -184,6 +184,134 @@ border: 0px solid;</string>
                 </widget>
                </item>
               </layout>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="storageTab">
+            <attribute name="title">
+             <string>Storage</string>
+            </attribute>
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <item>
+              <widget class="QWidget" name="widget_2" native="true">
+               <layout class="QVBoxLayout" name="verticalLayout_5">
+                <item>
+                 <widget class="QRadioButton" name="recycleRdo">
+                  <property name="cursor">
+                   <cursorShape>PointingHandCursor</cursorShape>
+                  </property>
+                  <property name="text">
+                   <string>Recycle?</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QScrollArea" name="scrollArea">
+                  <property name="widgetResizable">
+                   <bool>true</bool>
+                  </property>
+                  <widget class="QWidget" name="scrollAreaWidgetContents">
+                   <property name="geometry">
+                    <rect>
+                     <x>0</x>
+                     <y>0</y>
+                     <width>332</width>
+                     <height>349</height>
+                    </rect>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_7">
+                    <item>
+                     <widget class="QWidget" name="widget_4" native="true">
+                      <layout class="QVBoxLayout" name="verticalLayout_8">
+                       <item>
+                        <widget class="QPushButton" name="clearTempBtn">
+                         <property name="text">
+                          <string>Clear Temp folder</string>
+                         </property>
+                         <property name="autoDefault">
+                          <bool>false</bool>
+                         </property>
+                         <property name="default">
+                          <bool>false</bool>
+                         </property>
+                         <property name="flat">
+                          <bool>false</bool>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <spacer name="verticalSpacer_2">
+                         <property name="orientation">
+                          <enum>Qt::Vertical</enum>
+                         </property>
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>20</width>
+                           <height>40</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                      </layout>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="Line" name="line_2">
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <property name="lineWidth">
+                <number>7</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_3" native="true">
+               <layout class="QVBoxLayout" name="verticalLayout_9" stretch="1,2">
+                <item>
+                 <widget class="QTextEdit" name="folderDetailsDisplay">
+                  <property name="frameShape">
+                   <enum>QFrame::Box</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Plain</enum>
+                  </property>
+                  <property name="textInteractionFlags">
+                   <set>Qt::TextSelectableByMouse</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QTextEdit" name="operationDetailsDisplay">
+                  <property name="frameShape">
+                   <enum>QFrame::Box</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Plain</enum>
+                  </property>
+                  <property name="lineWidth">
+                   <number>1</number>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
              </item>
             </layout>
            </widget>

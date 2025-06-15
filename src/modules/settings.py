@@ -2,7 +2,10 @@ import json
 from PyQt6.QtWidgets import QDialog
 from PyQt6.QtGui import QIcon
 from assets.settings_ui import Ui_settingsDialog
-from src.helpers.helper import verify_settings, get_default_settings
+from src.helpers.helper import (
+  verify_settings,
+  get_default_settings
+)
 
 
 class Settings(QDialog, Ui_settingsDialog):

@@ -1,39 +1,61 @@
-from os import getcwd
+from os import (
+  getcwd,
+  environ as env
+)
+import asyncio
+import textwrap
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import (
   QApplication,
-  QMainWindow,
+  QMainWindow
 )
-from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import (
+  QIcon,
+  QCursor
+)
 import qdarkstyle
+from qasync import QEventLoop
 from assets.shade_util_ui import Ui_MainWindow
 from src.helpers.helper import (
   is_admin,
   run_as_admin_user,
   verify_devcon,
-  verify_settings
+  verify_settings,
+  get_temp_folder_size,
+  get_recycle_bin_size
 )
-from src.modules.driver_issues import DriverIssues
 from src.modules.settings import Settings
+from src.modules.driver_issues import DriverIssues
+from src.modules.storage import Storage
+
 
 class ShadeUtil(QMainWindow, Ui_MainWindow):
+  # MAIN
+  # buttons: settingsBtn
+
   # DRIVER ISSUES TAB
-  # buttons: settingsBtn, resetNetworkBtn, resetHidBtn
+  # buttons: resetNetworkBtn, resetHidBtn
   # display: driverIssuesDisplay
-  # labels: appLabel
+
+  # STORAGE TAB
+  # buttons: recycleRdo, clearTempBtn
+  # display: folderDetailsDisplay, operationDetailsDisplay
 
   def __init__(self):
-    self.pwd = getcwd()
-    if not verify_devcon(self.pwd):
-      pass
-    if not verify_settings(self.pwd):
-      pass
-
     super().__init__()
     self.setupUi(self)
+
+    self.pwd = getcwd()
+    if not verify_devcon(self.pwd):
+      self.resetHidBtn.setEnabled(False)
+    if not verify_settings(self.pwd):
+      self.settingsBtn.setEnabled(False)
+
     QtCore.QDir.addSearchPath('icons', 'assets/icons')
     self.setWindowIcon(QIcon('icons:/app_icon.ico'))
+
     self.settings = Settings(parent=self, pwd=self.pwd)
+    self.opn  = None
 
     self.settingsBtn.setIcon(QIcon('icons:/settings.ico'))
     self.settingsBtn.setIconSize(QtCore.QSize(50, 50))
@@ -42,7 +64,11 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
     self.resetNetworkBtn.clicked.connect(self.reset_driver_issues)
     self.resetHidBtn.clicked.connect(self.reset_driver_issues)
 
-    self.opn  = None
+    self.clearTempBtn.clicked.connect(self.perform_storage_operations)
+    QtCore.QTimer.singleShot(
+      0,
+      lambda: asyncio.ensure_future(self.populate_storage_tab())
+    )
 
   def reset_driver_issues(self):
     sender = self.sender()
@@ -51,19 +77,12 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
         self.opn = DriverIssues('hid', self.pwd)
       case 'Reset WIFI driver':
         self.opn = DriverIssues('wifi', self.pwd)
-      case _:
+      case _ :
         self.opn = None
         return
 
-    self.opn.statusSignal.connect(self.update_status)
+    self.opn.statusSignal.connect(self.update_di_status)
     self.opn.start()
-
-  def update_status(self, message: str, error: bool):
-    self.driverIssuesDisplay.setText(f'{self.driverIssuesDisplay.toPlainText()}{message}')
-    self.driverIssuesDisplay.selectAll()
-
-    if error:
-      self.kill_driver_operations()
 
   def kill_driver_operations(self):
     try:
@@ -72,13 +91,85 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
     except Exception:
       pass
 
+  def perform_storage_operations(self):
+    recycle = self.recycleRdo.isChecked()
+
+    sender = self.sender()
+    match sender.text():
+      case 'Clear Temp folder':
+        self.opn = Storage(env.get('TEMP'), recycle)
+      case _ :
+        self.opn = None
+        return
+
+    self.opn.statusSignal.connect(self.update_storage_status)
+    self.operationDetailsDisplay.setTextInteractionFlags(
+      QtCore.Qt.TextInteractionFlag.NoTextInteraction
+    )
+    self.operationDetailsDisplay.viewport().setCursor(
+      QCursor(
+        QtCore.Qt.CursorShape.BusyCursor
+      )
+    )
+    self.opn.start()
+
+  async def populate_storage_tab(self):
+    tempSize, recycleBinSize = await asyncio.gather(
+      get_temp_folder_size(),
+      get_recycle_bin_size()
+    )
+
+    self.folderDetailsDisplay.clear()
+    self.folderDetailsDisplay.setText(
+      textwrap.dedent(f"""
+        Temp folder size: {round(tempSize)} MB.
+        Recycle bin size: {round(recycleBinSize)} MB.
+      """).strip()
+    )
+
+  def update_di_status(self, message: str, error: bool):
+    self.driverIssuesDisplay.setText(
+      f'{self.driverIssuesDisplay.toPlainText()}{message}'
+    )
+    self.driverIssuesDisplay.selectAll()
+
+    if error:
+      self.kill_driver_operations()
+
+  def update_storage_status(self, message: str, refresh: bool):
+    if refresh:
+      QtCore.QTimer.singleShot(
+        0,
+        lambda: asyncio.ensure_future(self.populate_storage_tab())
+      )
+      self.operationDetailsDisplay.setTextInteractionFlags(
+        QtCore.Qt.TextInteractionFlag.TextSelectableByMouse
+      )
+      self.operationDetailsDisplay.viewport().setCursor(
+        QCursor(
+          QtCore.Qt.CursorShape.ArrowCursor
+        )
+      )
+
+    self.operationDetailsDisplay.setText(
+      f'{self.operationDetailsDisplay.toPlainText()}{message}\n\n'
+    )
+
 
 if __name__ == "__main__":
   if not is_admin():
     run_as_admin_user()
 
   app = QApplication([])
-  app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
+  app.setStyleSheet(
+    qdarkstyle.load_stylesheet(qt_api='pyqt6')
+  )
+
+  loop = QEventLoop(app)
+  asyncio.set_event_loop(loop)
+
   window = ShadeUtil()
   window.show()
-  app.exec()
+
+  with loop:
+    loop.run_forever()
