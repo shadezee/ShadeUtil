@@ -19,7 +19,8 @@ def get_disable_network_interface_cmd():
 
 def get_default_settings():
   settings = {
-    'hid_device_id': '',
+    'hid_device_id' : '',
+    'devcon_path' : '',
   }
 
   return settings

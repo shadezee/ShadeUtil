@@ -21,11 +21,16 @@ def run_as_admin_user():
   return True
 
 def verify_devcon(pwd: str):
-  devconPath = path.join(pwd, 'devcon')
-  if not path.isdir(devconPath):
-    makedirs(devconPath)
-  devconPath = path.join(devconPath, 'devcon.exe')
-  if not path.isfile(devconPath):
+  try:
+    devconPath = get_setting('devcon_path', pwd)
+    if devconPath == '':
+      devconPath = path.join(pwd, 'devcon')
+      if not path.isdir(devconPath):
+        makedirs(devconPath)
+      devconPath = path.join(devconPath, 'devcon.exe')
+    if not path.isfile(devconPath):
+      return False
+  except Exception:
     return False
   return devconPath
 
@@ -35,10 +40,28 @@ def verify_settings(pwd: str):
     if not path.isdir(settingsPath):
       makedirs(settingsPath)
 
+    defaultStructure = dict(get_default_settings())
     settingsPath = path.join(settingsPath, 'settings.json')
     if not path.isfile(settingsPath):
       with open(settingsPath, 'w', encoding="utf-8") as f:
-        json.dump(get_default_settings(), f)
+        json.dump(defaultStructure, f)
+      return settingsPath
+
+    try:
+      with open(settingsPath, 'r', encoding="utf-8") as f:
+        settings = json.load(f)
+    except Exception:
+      settings = {}
+
+    modified = False
+    for key, value in defaultStructure.items():
+      if key not in settings:
+        settings[key] = value
+        modified = True
+
+    if modified:
+      with open(settingsPath, "w", encoding="utf-8") as f:
+        json.dump(settings, f, indent=2)
   except Exception:
     return False
 

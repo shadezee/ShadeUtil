@@ -47,20 +47,20 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
 
     startUpError = False
     self.pwd = getcwd()
-    if not verify_devcon(self.pwd):
-      startUpError = True
-      self.resetHidBtn.setEnabled(False)
-      self.handle_errors(
-        'DRIVER_ISSUES_TITLE',
-        'MISSING_DEVCON_ERROR',
-        'WARNING'
-      )
     if not verify_settings(self.pwd):
       startUpError = True
       self.settingsBtn.setEnabled(False)
       self.handle_errors(
         'SETTINGS_TITLE',
         'INVALID_SETTINGS_FILE_ERROR',
+        'WARNING'
+      )
+    if not verify_devcon(self.pwd):
+      startUpError = True
+      self.resetHidBtn.setEnabled(False)
+      self.handle_errors(
+        'DRIVER_ISSUES_TITLE',
+        'MISSING_DEVCON_ERROR',
         'WARNING'
       )
     if startUpError:

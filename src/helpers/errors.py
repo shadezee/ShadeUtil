@@ -21,6 +21,8 @@ class ErrorConstants:
                       ''').strip(),
     'MISSING_DEVCON_ERROR' : 'Unable to find devcon.exe.',
     'INVALID_SETTINGS_FILE_ERROR' : 'Invalid or missing settings file.',
+    'SAVE_SETTINGS_ERROR' : 'Error saving settings.',
+    'LOAD_SETTINGS_ERROR' : 'Error loading settings.',
     'RESTART_WIFI_ERROR' : textwrap.dedent('''
                             Network driver could not be restarted.\n
                             Please check your permissions.
