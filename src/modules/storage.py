@@ -14,6 +14,7 @@ from send2trash import send2trash as trash
 
 class Storage(QThread):
   statusSignal = pyqtSignal(str, bool)
+  errorSignal = pyqtSignal(str, str, str)
 
   def __init__(self, dirPath:str, recycle: bool):
     super().__init__()
@@ -24,7 +25,6 @@ class Storage(QThread):
   def clear_folder(self):
     self.statusSignal.emit(f'Clearing: {self.path}\n', False)
     for fileName in listdir(self.path):
-      print(fileName)
       filePath = path.join(self.path, fileName)
       fileSize = path.getsize(filePath) / (1024 * 1024)
 
@@ -55,6 +55,11 @@ class Storage(QThread):
     errorCount = len(self.errors)
     if errorCount != 0:
       message = f'Cleared with {errorCount} errors!'
+      self.errorSignal.emit(
+        'STORAGE_TITLE',
+        'FILES_IN_USE_ERROR',
+        'INFORMATION'
+      )
       for error in self.errors:
         message += '\n\n' + error
 

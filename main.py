@@ -27,7 +27,7 @@ from src.helpers.helper import (
 from src.modules.settings import Settings
 from src.modules.driver_issues import DriverIssues
 from src.modules.storage import Storage
-
+from src.helpers.errors import Errors
 
 class ShadeUtil(QMainWindow, Ui_MainWindow):
   # MAIN
@@ -45,11 +45,30 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
     super().__init__()
     self.setupUi(self)
 
+    startUpError = False
     self.pwd = getcwd()
     if not verify_devcon(self.pwd):
+      startUpError = True
       self.resetHidBtn.setEnabled(False)
+      self.handle_errors(
+        'DRIVER_ISSUES_TITLE',
+        'MISSING_DEVCON_ERROR',
+        'WARNING'
+      )
     if not verify_settings(self.pwd):
+      startUpError = True
       self.settingsBtn.setEnabled(False)
+      self.handle_errors(
+        'SETTINGS_TITLE',
+        'INVALID_SETTINGS_FILE_ERROR',
+        'WARNING'
+      )
+    if startUpError:
+      self.handle_errors(
+        'STARTUP_ERROR_TITLE',
+        'STARTUP_ERROR',
+        'CRITICAL'
+      )
 
     QtCore.QDir.addSearchPath('icons', 'assets/icons')
     self.setWindowIcon(QIcon('icons:/app_icon.ico'))
@@ -70,6 +89,14 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
       lambda: asyncio.ensure_future(self.populate_storage_tab())
     )
 
+  def handle_errors(self, title: str, errorType: str, errorLevel: str):
+    Errors.raise_error(
+      self,
+      title,
+      errorType,
+      errorLevel,
+    )
+
   def reset_driver_issues(self):
     sender = self.sender()
     match sender.text():
@@ -82,6 +109,16 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
         return
 
     self.opn.statusSignal.connect(self.update_di_status)
+    self.opn.errorSignal.connect(self.handle_errors)
+
+    self.driverIssuesDisplay.setTextInteractionFlags(
+      QtCore.Qt.TextInteractionFlag.NoTextInteraction
+    )
+    self.driverIssuesDisplay.viewport().setCursor(
+      QCursor(
+        QtCore.Qt.CursorShape.BusyCursor
+      )
+    )
     self.opn.start()
 
   def kill_driver_operations(self):
@@ -103,6 +140,8 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
         return
 
     self.opn.statusSignal.connect(self.update_storage_status)
+    self.opn.errorSignal.connect(self.handle_errors)
+
     self.operationDetailsDisplay.setTextInteractionFlags(
       QtCore.Qt.TextInteractionFlag.NoTextInteraction
     )
@@ -131,7 +170,14 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
     self.driverIssuesDisplay.setText(
       f'{self.driverIssuesDisplay.toPlainText()}{message}'
     )
-    self.driverIssuesDisplay.selectAll()
+    self.driverIssuesDisplay.setTextInteractionFlags(
+      QtCore.Qt.TextInteractionFlag.TextSelectableByMouse
+    )
+    self.driverIssuesDisplay.viewport().setCursor(
+      QCursor(
+        QtCore.Qt.CursorShape.ArrowCursor
+      )
+    )
 
     if error:
       self.kill_driver_operations()
@@ -157,19 +203,27 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
 
 
 if __name__ == "__main__":
-  if not is_admin():
-    run_as_admin_user()
+  try:
+    if not is_admin():
+      run_as_admin_user()
 
-  app = QApplication([])
-  app.setStyleSheet(
-    qdarkstyle.load_stylesheet(qt_api='pyqt6')
-  )
+    app = QApplication([])
+    app.setStyleSheet(
+      qdarkstyle.load_stylesheet(qt_api='pyqt6')
+    )
 
-  loop = QEventLoop(app)
-  asyncio.set_event_loop(loop)
+    loop = QEventLoop(app)
+    asyncio.set_event_loop(loop)
 
-  window = ShadeUtil()
-  window.show()
+    window = ShadeUtil()
+    window.show()
 
-  with loop:
-    loop.run_forever()
+    with loop:
+      loop.run_forever()
+  except Exception:
+    Errors.raise_error(
+      None,
+      title='STARTUP_ERROR_TITLE',
+      errorType='STANDARD_ERROR',
+      errorLevel='CRITICAL'
+    )

@@ -12,7 +12,6 @@ def is_admin():
     return False
 
 def run_as_admin_user():
-  print('Running as admin from function')
   if sys.platform == 'win32':
     if windll.shell32.IsUserAnAdmin() == 0:
       sysExecutable = sys.executable
