@@ -6,11 +6,17 @@ def get_hid_restart_script(devconPath: str, deviceID: str):
     $deviceID = "{deviceID}"
     & $devconPath find * | Select-String $deviceID
     & $devconPath disable "$deviceID"
-    Start-Sleep -Seconds 3
+    Start-Sleep -Seconds 1
     & $devconPath enable "$deviceID"
   '''
 
   return script
+
+def get_protected_drivers():
+  return [
+    'HID\INTC816\3&D2322F2&0&0000',
+    'HID\CONVERTEDDEVICE&COL01\5&32CF90E6&0&0000'
+  ]
 
 def get_enable_network_interface_cmd():
   return 'netsh interface set interface Wi-Fi enable'

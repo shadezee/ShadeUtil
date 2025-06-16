@@ -5,12 +5,15 @@ from os import (
 )
 import textwrap
 from shutil import rmtree
+import logging
 from PyQt6.QtCore import (
   QThread,
   pyqtSignal
 )
 from send2trash import send2trash as trash
 
+
+logger = logging.getLogger(__name__)
 
 class Storage(QThread):
   statusSignal = pyqtSignal(str, bool)
@@ -21,6 +24,7 @@ class Storage(QThread):
     self.recycle = recycle
     self.errors = []
     self.path = dirPath
+    logger.info(f'Initializing Storage for: {dirPath}')
 
   def clear_folder(self):
     self.statusSignal.emit(f'Clearing: {self.path}\n', False)
@@ -44,11 +48,11 @@ class Storage(QThread):
           e = 'Currently being used by another application.'
 
         self.errors.append(
-          textwrap.dedent(f"""
+          textwrap.dedent(f'''
             Name: {fileName}
             Size: {fileSize:.2f} MB
             Reason {e}
-          """).strip()
+          ''').strip()
         )
 
     message = 'Cleared successfully!'

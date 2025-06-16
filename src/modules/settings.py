@@ -9,6 +9,7 @@ from src.helpers.helper import (
 )
 from src.helpers.errors import Errors
 
+
 class Settings(QDialog, Ui_settingsDialog):
   # labels: hidLabel, devconLabel
   # textEdits: hidText, devconText
@@ -41,7 +42,7 @@ class Settings(QDialog, Ui_settingsDialog):
       structure = get_default_settings()
       structure['hid_device_id'] = hidDeviceId
       structure['devcon_path'] = devconPath
-      with open(settingsPath, 'w', encoding="utf-8") as file:
+      with open(settingsPath, 'w', encoding='utf-8') as file:
         json.dump(structure, file)
       self.close_settings_ui()
     except Exception as e:
@@ -56,7 +57,7 @@ class Settings(QDialog, Ui_settingsDialog):
     try:
       settingsPath = verify_settings(self.pwd)
 
-      with open(settingsPath, 'r', encoding="utf-8") as file:
+      with open(settingsPath, 'r', encoding='utf-8') as file:
         settings = json.load(file)
 
       self.hidText.setText(settings['hid_device_id'])

@@ -1,11 +1,14 @@
 
 from subprocess import run
 from os import startfile
+import logging
 from PyQt6.QtCore import (
   QThread,
   pyqtSignal
 )
 from src.helpers.constants import get_bing_compile_script
+
+logger = logging.getLogger(__name__)
 
 
 class BingCompileException(Exception):
@@ -20,14 +23,14 @@ class Misc(QThread):
     super().__init__()
     self.operation = operation
     self.args = args
+    logger.info(f'Initializing Misc for: {operation}')
 
   def bing_compile(self, bingPath: str, compilePath: str):
     script = get_bing_compile_script(bingPath, compilePath)
-    print(script)
     for s in script:
-      print('s',s)
+      logger.debug(f'Running command: {s}')
       result = run(s, shell=True, check=False)
-      print(result)
+      logger.info(f'ran with result: {result}')
       if result.returncode != 0:
         raise BingCompileException()
 
@@ -35,7 +38,6 @@ class Misc(QThread):
     try:
       match self.operation:
         case 'bingCompile':
-          print('START')
           self.statusSignal.emit(
             'Compilation started...\n',
           )

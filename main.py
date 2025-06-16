@@ -1,6 +1,8 @@
 from os import (
   getcwd,
-  environ as env
+  environ as env,
+  path,
+  makedirs
 )
 import asyncio
 import textwrap
@@ -15,6 +17,7 @@ from PyQt6.QtGui import (
 )
 import qdarkstyle
 from qasync import QEventLoop
+import logging
 from assets.shade_util_ui import Ui_MainWindow
 from src.helpers.helper import (
   is_admin,
@@ -31,6 +34,29 @@ from src.modules.driver_issues import DriverIssues
 from src.modules.storage import Storage
 from src.modules.misc import Misc
 from src.helpers.errors import Errors
+
+
+def setup_logging():
+  logDir = path.join(getcwd(), 'data', 'logs')
+  logFile = path.join(logDir, 'shade_util.log')
+
+  if not path.exists(logDir):
+    makedirs(logDir)
+  with open(logFile, 'w'):
+    pass
+
+  logging.basicConfig(
+    filename=logFile,
+    level=logging.NOTSET,
+    format='%(asctime)s - %(levelname)s - %(funcName)s - %(message)s',
+    datefmt='%d-%m-%y %H:%M:%S'
+  )
+
+  return logFile
+
+logFile = setup_logging()
+logger = logging.getLogger(__name__)
+
 
 class ShadeUtil(QMainWindow, Ui_MainWindow):
   # MAIN
@@ -54,6 +80,8 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
 
     startUpError = False
     self.pwd = getcwd()
+    logger.debug(f'Running in {self.pwd}')
+
     if not verify_settings(self.pwd):
       startUpError = True
       self.settingsBtn.setEnabled(False)
@@ -79,6 +107,7 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
 
     QtCore.QDir.addSearchPath('icons', 'assets/icons')
     self.setWindowIcon(QIcon('icons:/app_icon.ico'))
+    self.tabs.setCurrentIndex(0)
 
     self.settings = Settings(parent=self, pwd=self.pwd)
     self.opn  = None
@@ -169,10 +198,10 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
 
     self.folderDetailsDisplay.clear()
     self.folderDetailsDisplay.setText(
-      textwrap.dedent(f"""
+      textwrap.dedent(f'''
         Temp folder size: {round(tempSize)} MB.
         Recycle bin size: {round(recycleBinSize)} MB.
-      """).strip()
+      ''').strip()
     )
 
   def perform_misc_operations(self):
@@ -232,7 +261,9 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
       f'{self.miscDisplay.toPlainText()}{message}\n\n'
     )
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
+  logger.info('Application startup initiated.')
   try:
     if not is_admin():
       run_as_admin_user()
@@ -242,8 +273,10 @@ if __name__ == "__main__":
       qdarkstyle.load_stylesheet(qt_api='pyqt6')
     )
 
+    logger.info('Application style set.')
     loop = QEventLoop(app)
     asyncio.set_event_loop(loop)
+    logger.info('Event loops initialized.')
 
     window = ShadeUtil()
     window.show()
