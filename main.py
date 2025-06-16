@@ -6,6 +6,7 @@ from os import (
 )
 import asyncio
 import textwrap
+import logging
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import (
   QApplication,
@@ -17,7 +18,6 @@ from PyQt6.QtGui import (
 )
 import qdarkstyle
 from qasync import QEventLoop
-import logging
 from assets.shade_util_ui import Ui_MainWindow
 from src.helpers.helper import (
   is_admin,
@@ -38,11 +38,12 @@ from src.helpers.errors import Errors
 
 def setup_logging():
   logDir = path.join(getcwd(), 'data', 'logs')
+  # pylint: disable-next=redefined-outer-name
   logFile = path.join(logDir, 'shade_util.log')
 
   if not path.exists(logDir):
     makedirs(logDir)
-  with open(logFile, 'w'):
+  with open(logFile, 'w', encoding='utf-8'):
     pass
 
   logging.basicConfig(

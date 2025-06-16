@@ -45,7 +45,7 @@ class Settings(QDialog, Ui_settingsDialog):
       with open(settingsPath, 'w', encoding='utf-8') as file:
         json.dump(structure, file)
       self.close_settings_ui()
-    except Exception as e:
+    except Exception:
       Errors.raise_error(
         self,
         'SETTINGS_TITLE',
@@ -62,7 +62,7 @@ class Settings(QDialog, Ui_settingsDialog):
 
       self.hidText.setText(settings['hid_device_id'])
       self.devconText.setText(settings['devcon_path'])
-    except Exception as e:
+    except Exception:
       Errors.raise_error(
         self,
         'SETTINGS_TITLE',
