@@ -1,4 +1,5 @@
 
+
 def get_hid_restart_script(devconPath: str, deviceID: str):
   script = f'''
     $devconPath = "{devconPath}"
@@ -24,3 +25,11 @@ def get_default_settings():
   }
 
   return settings
+
+def get_bing_compile_script(bingAssetsPath: str, compilePath: str):
+  script = [
+    f'xcopy /s /i "{bingAssetsPath}" "{compilePath}"',
+    f'cd "{compilePath}" && ren *.* *.jpg'
+  ]
+
+  return script

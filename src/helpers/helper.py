@@ -1,6 +1,15 @@
-from os import path, makedirs, walk, environ as env
+from os import (
+  path,
+  makedirs,
+  walk,
+  environ as env,
+  listdir,
+  unlink
+)
+from shutil import rmtree
 import json
 import sys
+from datetime import date
 from ctypes import windll, create_unicode_buffer
 from src.helpers.constants import get_default_settings
 
@@ -96,3 +105,43 @@ async def get_recycle_bin_size():
       totalSize += path.getsize(filepath)
 
   return totalSize / (1024 * 1024)
+
+def verify_bing_folder():
+  appDataPath = path.join(
+      env['LOCALAPPDATA'],
+      'Packages',
+      'Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy',
+      'LocalState',
+      'Assets'
+  )
+
+  if path.isdir(appDataPath):
+    return appDataPath
+  return False
+
+def clear_directory(dirPath: str):
+  for entry in listdir(dirPath):
+    entryPath = path.join(dirPath, entry)
+    try:
+      if path.isfile(entryPath) or path.islink(entryPath):
+        unlink(entryPath)
+      elif path.isdir(entryPath):
+        rmtree(entryPath)
+    except Exception:
+      continue
+
+def create_bing_compile_folder(pwd: str):
+  try:
+    compilePath = path.join(
+      pwd,
+      'data',
+      'bing_compile',
+      str(date.today().strftime('%d-%m-%Y'))
+    )
+
+    if not path.isdir(compilePath):
+      makedirs(compilePath)
+    clear_directory(compilePath)
+    return compilePath
+  except Exception:
+    return False

@@ -22,11 +22,14 @@ from src.helpers.helper import (
   verify_devcon,
   verify_settings,
   get_temp_folder_size,
-  get_recycle_bin_size
+  get_recycle_bin_size,
+  verify_bing_folder,
+  create_bing_compile_folder
 )
 from src.modules.settings import Settings
 from src.modules.driver_issues import DriverIssues
 from src.modules.storage import Storage
+from src.modules.misc import Misc
 from src.helpers.errors import Errors
 
 class ShadeUtil(QMainWindow, Ui_MainWindow):
@@ -40,6 +43,10 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
   # STORAGE TAB
   # buttons: recycleRdo, clearTempBtn
   # display: folderDetailsDisplay, operationDetailsDisplay
+
+  # MISC TAB
+  # buttons: bingCompileBtn
+  # display: miscDisplay
 
   def __init__(self):
     super().__init__()
@@ -88,6 +95,8 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
       0,
       lambda: asyncio.ensure_future(self.populate_storage_tab())
     )
+
+    self.bingCompileBtn.clicked.connect(self.perform_misc_operations)
 
   def handle_errors(self, title: str, errorType: str, errorLevel: str):
     Errors.raise_error(
@@ -166,6 +175,23 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
       """).strip()
     )
 
+  def perform_misc_operations(self):
+    sender = self.sender()
+
+    match sender.text():
+      case 'Fetch today\'s Bing wallpapers':
+        bingPath = verify_bing_folder()
+        compilePath = create_bing_compile_folder(self.pwd)
+
+        if bingPath and compilePath:
+          self.opn = Misc('bingCompile', [bingPath, compilePath])
+      case _ :
+        return
+
+    self.opn.statusSignal.connect(self.update_misc_status)
+    self.opn.errorSignal.connect(self.handle_errors)
+    self.opn.start()
+
   def update_di_status(self, message: str, error: bool):
     self.driverIssuesDisplay.setText(
       f'{self.driverIssuesDisplay.toPlainText()}{message}'
@@ -201,6 +227,10 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
       f'{self.operationDetailsDisplay.toPlainText()}{message}\n\n'
     )
 
+  def update_misc_status(self, message: str):
+    self.miscDisplay.setText(
+      f'{self.miscDisplay.toPlainText()}{message}\n\n'
+    )
 
 if __name__ == "__main__":
   try:

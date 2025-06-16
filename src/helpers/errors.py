@@ -10,7 +10,8 @@ class ErrorConstants:
     'STARTUP_ERROR_TITLE' : 'Startup error',
     'DRIVER_ISSUES_TITLE' : 'Driver issues error',
     'STORAGE_TITLE' : 'Storage error',
-    'SETTINGS_TITLE' : 'Settings error'
+    'SETTINGS_TITLE' : 'Settings error',
+    'MISC_TITLE' : 'Misc error'
   }
 
   MESSAGES = {
@@ -36,6 +37,10 @@ class ErrorConstants:
     'FILES_IN_USE_ERROR' : textwrap.dedent('''
                             Operation incomplete...\n
                             Some files are currently being used by another application.
+                          ''').strip(),
+    'BING_COMPILE_ERROR' : textwrap.dedent('''
+                            There was an issue with original assets.\n
+                            Bing compile failed.\n
                           ''').strip()
   }
 
