@@ -227,8 +227,8 @@ border: 0px solid;</string>
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>318</width>
-                     <height>405</height>
+                     <width>138</width>
+                     <height>66</height>
                     </rect>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -355,7 +355,7 @@ border: 0px solid;</string>
                      <x>0</x>
                      <y>0</y>
                      <width>673</width>
-                     <height>109</height>
+                     <height>106</height>
                     </rect>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -436,7 +436,7 @@ border: 0px solid;</string>
              <item>
               <widget class="QTextEdit" name="miscDisplay">
                <property name="styleSheet">
-                <string notr="true">background: transparent;</string>
+                <string notr="true"/>
                </property>
                <property name="frameShape">
                 <enum>QFrame::Box</enum>

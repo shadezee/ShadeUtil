@@ -16,7 +16,6 @@ from PyQt6.QtGui import (
   QIcon,
   QCursor
 )
-import qdarkstyle
 from qasync import QEventLoop
 from assets.shade_util_ui import Ui_MainWindow
 from src.helpers.helper import (
@@ -34,6 +33,61 @@ from src.modules.driver_issues import DriverIssues
 from src.modules.storage import Storage
 from src.modules.misc import Misc
 from src.helpers.errors import Errors
+
+
+def get_custom_stylesheet(
+  background='#0b4249',
+  text="#FFFFFF",
+  textEditBackground="#06262b",
+  button='#ffffff',
+  buttonHover='#21cce1',
+  buttonText="#000000",
+  border='#FFFFFF',
+  highlight='#21cce1'
+):
+  return f'''
+    QWidget {{
+      background-color: {background};
+      color: {text};
+      font-family: Segoe UI, sans-serif;
+    }}
+    QPushButton {{
+      background-color: {button};
+      border: 1px solid {border};
+      padding: 5px 10px;
+      border-radius: 5px;
+      color:{buttonText};
+    }}
+    QPushButton:hover {{
+      background-color: {buttonHover};
+    }}
+    QTextEdit, QPlainTextEdit, QLineEdit {{
+      background-color: {textEditBackground};
+      color: {text};
+      border: 1px solid {border};
+      padding: 4px;
+      border-radius: 3px;
+    }}
+    QTabWidget::pane {{
+      border: 1px solid {border};
+    }}
+    QTabBar::tab {{
+      background: {textEditBackground};
+      color: {text};
+      padding: 6px;
+    }}
+    QTabBar::tab:selected {{
+      background: {highlight};
+      color: {buttonText};
+    }}
+    QRadioButton {{
+      color: {text};
+    }}
+    QRadioButton:indicator:checked {{
+      background-color: {highlight};
+      border-radius: 8px;
+    }}
+  '''
 
 
 def setup_logging():
@@ -108,7 +162,7 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
 
     QtCore.QDir.addSearchPath('icons', 'assets/icons')
     self.setWindowIcon(QIcon('icons:/app_icon.ico'))
-    self.tabs.setCurrentIndex(0)
+    self.tabs.setCurrentIndex(1)
 
     self.settings = Settings(parent=self, pwd=self.pwd)
     self.opn  = None
@@ -270,9 +324,7 @@ if __name__ == '__main__':
       run_as_admin_user()
 
     app = QApplication([])
-    app.setStyleSheet(
-      qdarkstyle.load_stylesheet(qt_api='pyqt6')
-    )
+    app.setStyleSheet(get_custom_stylesheet())
 
     logger.info('Application style set.')
     loop = QEventLoop(app)
