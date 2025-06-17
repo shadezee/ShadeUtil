@@ -162,7 +162,7 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
 
     QtCore.QDir.addSearchPath('icons', 'assets/icons')
     self.setWindowIcon(QIcon('icons:/app_icon.ico'))
-    self.tabs.setCurrentIndex(1)
+    self.tabs.setCurrentIndex(0)
 
     self.settings = Settings(parent=self, pwd=self.pwd)
     self.opn  = None
