@@ -33,62 +33,7 @@ from src.modules.driver_issues import DriverIssues
 from src.modules.storage import Storage
 from src.modules.misc import Misc
 from src.helpers.errors import Errors
-
-
-def get_custom_stylesheet(
-  background='#0b4249',
-  text="#FFFFFF",
-  textEditBackground="#06262b",
-  button='#ffffff',
-  buttonHover='#21cce1',
-  buttonText="#000000",
-  border='#FFFFFF',
-  highlight='#21cce1'
-):
-  return f'''
-    QWidget {{
-      background-color: {background};
-      color: {text};
-      font-family: Segoe UI, sans-serif;
-    }}
-    QPushButton {{
-      background-color: {button};
-      border: 1px solid {border};
-      padding: 5px 10px;
-      border-radius: 5px;
-      color:{buttonText};
-    }}
-    QPushButton:hover {{
-      background-color: {buttonHover};
-    }}
-    QTextEdit, QPlainTextEdit, QLineEdit {{
-      background-color: {textEditBackground};
-      color: {text};
-      border: 1px solid {border};
-      padding: 4px;
-      border-radius: 3px;
-    }}
-    QTabWidget::pane {{
-      border: 1px solid {border};
-    }}
-    QTabBar::tab {{
-      background: {textEditBackground};
-      color: {text};
-      padding: 6px;
-    }}
-    QTabBar::tab:selected {{
-      background: {highlight};
-      color: {buttonText};
-    }}
-    QRadioButton {{
-      color: {text};
-    }}
-    QRadioButton:indicator:checked {{
-      background-color: {highlight};
-      border-radius: 8px;
-    }}
-  '''
-
+from assets.stylesheets import get_initial_stylesheet
 
 def setup_logging():
   logDir = path.join(getcwd(), 'data', 'logs')
@@ -166,13 +111,14 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
 
     self.settings = Settings(parent=self, pwd=self.pwd)
     self.opn  = None
+    self.opnMapping = {}
 
     self.settingsBtn.setIcon(QIcon('icons:/settings.ico'))
-    self.settingsBtn.setIconSize(QtCore.QSize(50, 50))
+    self.settingsBtn.setIconSize(QtCore.QSize(75, 75))
     self.settingsBtn.clicked.connect(self.settings.load_settings_ui)
 
-    self.resetNetworkBtn.clicked.connect(self.reset_driver_issues)
-    self.resetHidBtn.clicked.connect(self.reset_driver_issues)
+    self.resetNetworkBtn.clicked.connect(self.perform_driver_issues_operations)
+    self.resetHidBtn.clicked.connect(self.perform_driver_issues_operations)
 
     self.clearTempBtn.clicked.connect(self.perform_storage_operations)
     QtCore.QTimer.singleShot(
@@ -190,7 +136,16 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
       errorLevel,
     )
 
-  def reset_driver_issues(self):
+  def toggle_button_status(self, opn, inProgress: bool, button=None):
+    logger.debug(f'Current mapping: \n{self.opnMapping}')
+    if inProgress:
+      if button:
+        self.opnMapping[opn] = button
+    else:
+      button = self.opnMapping.pop(opn)
+    button.setEnabled(not button.isEnabled())
+
+  def perform_driver_issues_operations(self):
     sender = self.sender()
     match sender.text():
       case 'Reset HID':
@@ -201,8 +156,11 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
         self.opn = None
         return
 
+    self.toggle_button_status(self.opn, True, sender)
     self.opn.statusSignal.connect(self.update_di_status)
     self.opn.errorSignal.connect(self.handle_errors)
+    opn = self.opn
+    self.opn.finished.connect(lambda: self.toggle_button_status(opn, inProgress=False))
 
     self.driverIssuesDisplay.setTextInteractionFlags(
       QtCore.Qt.TextInteractionFlag.NoTextInteraction
@@ -232,8 +190,10 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
         self.opn = None
         return
 
+    self.toggle_button_status(self.opn, True, sender)
     self.opn.statusSignal.connect(self.update_storage_status)
     self.opn.errorSignal.connect(self.handle_errors)
+    self.opn.finished.connect(lambda: self.toggle_button_status(self.opn, inProgress=False))
 
     self.operationDetailsDisplay.setTextInteractionFlags(
       QtCore.Qt.TextInteractionFlag.NoTextInteraction
@@ -272,8 +232,11 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
       case _ :
         return
 
+    self.toggle_button_status(self.opn, True, sender)
     self.opn.statusSignal.connect(self.update_misc_status)
     self.opn.errorSignal.connect(self.handle_errors)
+    self.opn.finished.connect(lambda: self.toggle_button_status(self.opn, inProgress=False))
+
     self.opn.start()
 
   def update_di_status(self, message: str, error: bool):
@@ -324,7 +287,7 @@ if __name__ == '__main__':
       run_as_admin_user()
 
     app = QApplication([])
-    app.setStyleSheet(get_custom_stylesheet())
+    app.setStyleSheet(get_initial_stylesheet())
 
     logger.info('Application style set.')
     loop = QEventLoop(app)

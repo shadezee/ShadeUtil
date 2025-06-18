@@ -32,8 +32,24 @@ class DriverIssuesException(Exception):
     super().__init__('Operation failed.')
 
 class PartialSuccessException(Exception):
-  def __init__(self):
-    super().__init__('Certain drivers failed to restart.')
+  def __init__(self, failedDrivers: list, protectedFailed: list):
+    allFailedList = ''
+    protectedList = ''
+    for index, driver in enumerate(failedDrivers):
+      allFailedList += f'{index + 1}. {driver}\n'
+    for index, driver in enumerate(protectedFailed):
+      protectedList += f'{index + 1}. {driver}\n'
+    allFailedList = allFailedList.strip()
+    protectedList = protectedList.strip()
+
+    message = textwrap.dedent(f'''
+      Certain drivers failed to restart.
+      Failed Drivers:
+      {allFailedList if allFailedList else 'None'}
+      Protected Drivers (could not be restarted due to protection):
+      {protectedList if protectedList else 'None'}
+    ''')
+    super().__init__(message)
 
 class DriverIssues(QThread):
   statusSignal = pyqtSignal(str, bool)
@@ -79,7 +95,11 @@ class DriverIssues(QThread):
 
     if errors - success != 0:
       protectedDrivers = get_protected_drivers()
-      failedDrivers = list(set(failedDrivers) - set(protectedDrivers))
+      failedDrivers = list(set(failedDrivers))
+      protectedFailed = [
+        driver for driver in failedDrivers if driver in protectedDrivers
+      ]
+      failedDrivers = failedDrivers - protectedDrivers
 
     logger.warning(
       textwrap.dedent(
@@ -90,7 +110,7 @@ class DriverIssues(QThread):
         '''
       )
     )
-    return failedDrivers
+    return failedDrivers, protectedFailed
 
   def fix_hid(self):
     devconPath = verify_devcon(self.pwd)
@@ -121,10 +141,17 @@ class DriverIssues(QThread):
     if result.stderr != '':
       raise DriverIssuesException()
 
-    failedDrivers = self.process_hid_output(result.stdout)
-    if len(failedDrivers) > 0:
-      logger.warning(f'Failed to restart drivers: {failedDrivers}')
-      raise PartialSuccessException()
+    failedDrivers, protectedFailed = self.process_hid_output(result.stdout)
+    if len(failedDrivers) > 0 or len(protectedFailed) > 0:
+      logger.warning(
+        textwrap.dedent(f'''
+          Failed to restart drivers:\n
+          Protected: {protectedFailed}\n
+          Others: {failedDrivers}
+        ''')
+      )
+      logger.warning(f'Others: {failedDrivers}')
+      raise PartialSuccessException(failedDrivers, protectedFailed)
 
     self.statusSignal.emit('Operation complete!\n\n', True)
 

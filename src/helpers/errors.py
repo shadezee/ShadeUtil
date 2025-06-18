@@ -19,7 +19,7 @@ class ErrorConstants:
   MESSAGES = {
     'STANDARD_ERROR' : 'Something went wrong.',
     'STARTUP_ERROR' : textwrap.dedent('''
-                        Something went wrong during application startup.\n
+                        Something went wrong during application startup.
                         Some features maybe disabled.
                       ''').strip(),
     'MISSING_DEVCON_ERROR' : 'Unable to find devcon.exe.',
@@ -27,23 +27,23 @@ class ErrorConstants:
     'SAVE_SETTINGS_ERROR' : 'Error saving settings.',
     'LOAD_SETTINGS_ERROR' : 'Error loading settings.',
     'RESTART_WIFI_ERROR' : textwrap.dedent('''
-                            Network driver could not be restarted.\n
+                            Network driver could not be restarted.
                             Please check your permissions.
                           ''').strip(),
     'RESTART_HID_ERROR' : textwrap.dedent('''
-                            HID drivers could not be restarted.\n
+                            HID drivers could not be restarted.
                             Please check your permissions or device id.
                           ''').strip(),
-    'PARTIAL_SUCCESS_ERROR' : 'Operation partially successful.',
+    'PARTIAL_SUCCESS_ERROR' : 'Operation partially successful. Please check the log file.',
     'INVALID_SETTING_ERROR' : 'Invalid or missing setting for this particular operation.',
     'INSUFFICIENT_PRIVILEGES_ERROR' : 'Operation failed due to insufficient privileges.',
     'FILES_IN_USE_ERROR' : textwrap.dedent('''
-                            Operation incomplete...\n
+                            Operation incomplete...
                             Some files are currently being used by another application.
                           ''').strip(),
     'BING_COMPILE_ERROR' : textwrap.dedent('''
-                            There was an issue with original assets.\n
-                            Bing compile failed.\n
+                            There was an issue with original assets.
+                            Bing compile failed.
                           ''').strip()
   }
 
