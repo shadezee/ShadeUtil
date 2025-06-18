@@ -85,6 +85,7 @@ class DriverIssues(QThread):
     errors = 0
     success = 0
     failedDrivers = []
+    protectedFailed = []
     for line in result:
       if line.strip().lower().endswith(': disabled'):
         errors += 1
@@ -107,6 +108,7 @@ class DriverIssues(QThread):
           Errors: {errors}
           Success: {success}
           Failed drivers: {failedDrivers}
+          Protected failed drivers: {protectedFailed}
         '''
       )
     )
