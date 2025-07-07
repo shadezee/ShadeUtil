@@ -39,14 +39,14 @@ class Misc(QThread):
       match self.operation:
         case 'bingCompile':
           self.statusSignal.emit(
-            'Compilation started...\n',
+            'Compilation started...',
           )
           bingPath = self.args[0]
           compilePath = self.args[1]
           self.bing_compile(bingPath, compilePath)
           startfile(compilePath)
           self.statusSignal.emit(
-            f'Operation completed at {compilePath}!\n\n',
+            f'Operation completed at {compilePath}',
           )
         case _ :
           pass

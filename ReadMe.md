@@ -87,7 +87,7 @@ Built out of pure frustration:
   #### 3. Development tools
   - To convert modified .ui files into Python:
   ```
-    python -m PyQt6.uic.pyuic ./assets/ui_file.ui -o ./assets/ui_file.py
+    python -m PyQt6.uic.pyuic ./assets/ui_files/ui_file.ui -o ./assets/ui_file_ui.py
   ```
 
   - devcon.exe
@@ -95,7 +95,7 @@ Built out of pure frustration:
     Usually located in:
     C:\Program Files (x86)\Windows Kits\10\Tools\10.0.26100.0\x64\devcon.exe
   ```
-  or can be downloaded from this from [this link](https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/devcon).
+  or can be downloaded from [this link](https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/devcon).
 
 
 <!-- CONTRIBUTING -->
@@ -104,20 +104,15 @@ Built out of pure frustration:
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
 If you have a suggestion that would make this better you can also simply open an issue with the tag `enhancement/relevant-name`.
-Don't forget to give the project a star! Thanks again!
+Don't forget to give the project a star!
 
 <!-- LICENSE -->
 ## License
-This project is licensed under the MIT License — see the [LICENSE file](LICENSE)  for details.
+This project is licensed under the MIT License — see the [LICENSE file](LICENSE) for details.
 
 <br>
-
-
-## NOTE:
-Shade Util has one known bug, currently two operations cannot be run at once.
-Thanks 😉.
-
 <br>
+
 <p align="right"><a href="#readme-top">back to top</a></p>
 
 <!-- MARKDOWN LINKS & IMAGES -->
