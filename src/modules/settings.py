@@ -72,7 +72,7 @@ class Settings(QDialog, Ui_settingsDialog):
 
   def load_settings_ui(self):
     self.load_settings()
-    self.show()
+    self.exec()
 
   def close_settings_ui(self):
     self.close()

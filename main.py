@@ -7,6 +7,7 @@ from os import (
 import asyncio
 import textwrap
 import logging
+from functools import partial
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import (
   QApplication,
@@ -33,6 +34,7 @@ from src.modules.driver_issues import DriverIssues
 from src.modules.storage import Storage
 from src.modules.misc import Misc
 from src.helpers.errors import Errors
+# pylint: disable-next=ungrouped-imports
 from assets.stylesheets import get_initial_stylesheet
 
 def setup_logging():
@@ -110,7 +112,6 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
     self.tabs.setCurrentIndex(0)
 
     self.settings = Settings(parent=self, pwd=self.pwd)
-    self.opn  = None
     self.opnMapping = {}
 
     self.settingsBtn.setIcon(QIcon('icons:/settings.ico'))
@@ -147,53 +148,36 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
 
   def perform_driver_issues_operations(self):
     sender = self.sender()
-    match sender.text():
-      case 'Reset HID':
-        self.opn = DriverIssues('hid', self.pwd)
-      case 'Reset WIFI driver':
-        self.opn = DriverIssues('wifi', self.pwd)
-      case _ :
-        self.opn = None
-        return
+    opn = sender.text()
+    worker = None
 
-    self.toggle_button_status(self.opn, True, sender)
-    self.opn.statusSignal.connect(self.update_di_status)
-    self.opn.errorSignal.connect(self.handle_errors)
-    opn = self.opn
-    self.opn.finished.connect(lambda: self.toggle_button_status(opn, inProgress=False))
+    match opn:
+      case 'Reset HID':
+        worker = DriverIssues('hid', self.pwd)
+      case 'Reset WIFI driver':
+        worker = DriverIssues('wifi', self.pwd)
+      case _ :
+        return
 
     self.driverIssuesDisplay.setTextInteractionFlags(
       QtCore.Qt.TextInteractionFlag.NoTextInteraction
     )
-    self.driverIssuesDisplay.viewport().setCursor(
-      QCursor(
-        QtCore.Qt.CursorShape.BusyCursor
-      )
-    )
-    self.opn.start()
+    self.run_operation(opn, worker, sender)
 
   def kill_driver_operations(self):
-    try:
-      self.opn.terminate()
-      self.opn = None
-    except Exception:
-      pass
+    pass
 
   def perform_storage_operations(self):
     recycle = self.recycleRdo.isChecked()
-
     sender = self.sender()
-    match sender.text():
-      case 'Clear Temp folder':
-        self.opn = Storage(env.get('TEMP'), recycle)
-      case _ :
-        self.opn = None
-        return
+    opn = sender.text()
+    worker = None
 
-    self.toggle_button_status(self.opn, True, sender)
-    self.opn.statusSignal.connect(self.update_storage_status)
-    self.opn.errorSignal.connect(self.handle_errors)
-    self.opn.finished.connect(lambda: self.toggle_button_status(self.opn, inProgress=False))
+    match opn:
+      case 'Clear Temp folder':
+        worker = Storage(env.get('TEMP'), recycle)
+      case _ :
+        return
 
     self.operationDetailsDisplay.setTextInteractionFlags(
       QtCore.Qt.TextInteractionFlag.NoTextInteraction
@@ -203,7 +187,7 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
         QtCore.Qt.CursorShape.BusyCursor
       )
     )
-    self.opn.start()
+    self.run_operation(opn, worker, sender)
 
   async def populate_storage_tab(self):
     tempSize, recycleBinSize = await asyncio.gather(
@@ -221,23 +205,19 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
 
   def perform_misc_operations(self):
     sender = self.sender()
+    opn = sender.text()
+    worker = None
 
-    match sender.text():
+    match opn:
       case 'Fetch today\'s Bing wallpapers':
         bingPath = verify_bing_folder()
         compilePath = create_bing_compile_folder(self.pwd)
 
         if bingPath and compilePath:
-          self.opn = Misc('bingCompile', [bingPath, compilePath])
+          worker = Misc('bingCompile', [bingPath, compilePath])
       case _ :
         return
-
-    self.toggle_button_status(self.opn, True, sender)
-    self.opn.statusSignal.connect(self.update_misc_status)
-    self.opn.errorSignal.connect(self.handle_errors)
-    self.opn.finished.connect(lambda: self.toggle_button_status(self.opn, inProgress=False))
-
-    self.opn.start()
+    self.run_operation(opn, worker, sender)
 
   def update_di_status(self, message: str, error: bool):
     self.driverIssuesDisplay.setText(
@@ -253,7 +233,12 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
     )
 
     if error:
-      self.kill_driver_operations()
+      pass
+      # self.handle_errors(
+      #   'DRIVER_ISSUES_TITLE',
+      #   'DRIVER_ISSUES_ERROR',
+      #   'CRITICAL'
+      # )
 
   def update_storage_status(self, message: str, refresh: bool):
     if refresh:
@@ -276,8 +261,32 @@ class ShadeUtil(QMainWindow, Ui_MainWindow):
 
   def update_misc_status(self, message: str):
     self.miscDisplay.setText(
-      f'{self.miscDisplay.toPlainText()}{message}\n\n'
+      f'{self.miscDisplay.toPlainText()}{message}\n'
     )
+
+  def on_finished(self, worker):
+    button = self.opnMapping.pop(worker, None)
+    if button:
+      button.setEnabled(True)
+    worker.terminate()
+
+  def run_operation(self, opn: str, worker: QtCore.QThread, button):
+    if isinstance(worker, DriverIssues):
+      worker.statusSignal.connect(self.update_di_status)
+      worker.errorSignal.connect(self.handle_errors)
+    elif isinstance(worker, Storage):
+      worker.statusSignal.connect(self.update_storage_status)
+      worker.errorSignal.connect(self.handle_errors)
+    elif isinstance(worker, Misc):
+      worker.statusSignal.connect(self.update_misc_status)
+      worker.errorSignal.connect(self.handle_errors)
+    else:
+      return
+
+    self.opnMapping[worker] = button
+    button.setEnabled(False)
+    worker.finished.connect(partial(self.on_finished, worker))
+    worker.start()
 
 
 if __name__ == '__main__':
